@@ -1,2 +1,4 @@
-deepseek_v3:xxxx
-deepseek_r1:xxxx
+deepseek_v3:your_session_id:your_x_token
+deepseek_r1:your_session_id:your_x_token
+deepseek_public_v3:your_session_id:your_x_token
+deepseek_public_r1:your_session_id:your_x_token
