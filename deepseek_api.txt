@@ -1,0 +1,9 @@
+ollama api:
+http://xx.xx.xx.xx:9999
+
+openai api:
+api地址（新）：http://xx.xx.xx.xx:9999/v1
+api路径：/chat/completions
+模型列表：
+deepseek_v3
+deepseek_r1
