@@ -23,8 +23,6 @@
 
 - deepseek_v3
 - deepseek_r1
-- deepseek_public_v3
-- deepseek_public_r1
 
 ## 安装依赖
 
@@ -61,17 +59,28 @@ pip install -r requirements.txt
 # 格式：模型名称:session_id:x_token
 deepseek_v3:your_session_id:your_x_token
 deepseek_r1:your_session_id:your_x_token
-deepseek_public_v3:your_session_id:your_x_token
-deepseek_public_r1:your_session_id:your_x_token
 ```
 
-**获取 session_id 和 x_token 的方法：**
+**获取 会话 id(即session_id) 和 hy_token 的方法：**
 1. 登录腾讯元宝网站
 2. 打开浏览器开发者工具（F12）
 3. 切换到 Network 标签页
 4. 发送一条消息给 Deepseek 模型
-5. 在网络请求中找到包含 `session_id` 和 `x_token` 的请求
-6. 复制这些值到配置文件中
+5. 找到 `https://yuanbao.tencent.com/api/user/agent/conversation/v1/detail` 请求
+6. 从该请求的 Cookie 中获取 `hy_token`
+7. 从该请求的响应中获取会话 `id`（即 session_id）
+
+   例如响应格式：
+   ```json
+   {
+       "id": "xxx-xxx-xx-xxx-xxxxxxxx",(这个就是会话 id)
+       "userId": "xxxxxxx",
+       "stopGenerating": false,
+       "sensitive": false,
+       "title": "问候与初步交流"
+   }
+   ```
+8. 复制这些值到配置文件中
 
 ### 2. 启动服务
 
@@ -91,28 +100,7 @@ python yuanbao_openai_api.py
 
 **接口地址：** `http://localhost:9999/v1/chat/completions`
 
-**请求示例：**
-
-```python
-import openai
-
-# 配置客户端
-openai.api_key = "fake_key"  # 这里可以填写任意值
-openai.api_base = "http://localhost:9999/v1"
-
-# 发送请求
-response = openai.ChatCompletion.create(
-    model="deepseek_v3",
-    messages=[
-        {"role": "system", "content": "你是一个智能助手"},
-        {"role": "user", "content": "Hello, how are you?"}
-    ],
-    stream=False
-)
-
-# 打印响应
-print(response.choices[0].message.content)
-```
+**请求示例：** `test.py`
 
 ### 其他 API 端点
 
@@ -130,6 +118,7 @@ deepseek_apiServer/
 ├── yuanbao_model_sessions.txt  # 模型会话配置
 ├── yuanbao_api.log          # 日志文件
 ├── restart.bat              # 重启脚本
+├── test.py                  # 测试脚本  
 └── README.md                # 项目说明
 ```
 
@@ -150,11 +139,11 @@ deepseek_apiServer/
 ### Q: 服务启动失败怎么办？
 A: 请检查端口 9999 是否已被占用，或修改代码中的端口配置。
 
-### Q: 如何获取 session_id 和 x_token？
+### Q: 如何获取 session_id 和 hy_token？
 A: 请参考配置方法中的说明，通过浏览器开发者工具获取。
 
 ### Q: 支持哪些模型？
-A: 目前支持 deepseek_v3、deepseek_r1、deepseek_public_v3 和 deepseek_public_r1。
+A: 目前支持 deepseek_v3、deepseek_r1。
 
 ## 许可证
 
