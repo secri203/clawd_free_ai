@@ -68,6 +68,8 @@ x_token:your_x_token
 5. 找到 `https://yuanbao.tencent.com/api/user/agent/conversation/v1/detail` 请求
 6. 从该请求的 Cookie 中获取 `hy_token`
 <img width="1920" height="810" alt="image" src="https://github.com/user-attachments/assets/b1bd11b7-6682-4bf5-9eb9-6f6fd7c4deb1" />
+
+在Cookie 中找到 `hy_token`
 <img width="1896" height="459" alt="image" src="https://github.com/user-attachments/assets/8683065f-fefe-4647-8108-5f612e383ac0" />
 8. 复制hy_token值到配置文件中
 
