@@ -1,2 +1,5 @@
-deepseek_v3:your_session_id:your_hy_token
-deepseek_r1:your_session_id:your_hy_token
+# Yuanbao API 配置文件
+# 只需配置一个 x-token，所有模型共用此 token
+# 格式: x_token:你的token值（WEB版的元宝页面中，名称叫：hy_token）
+
+x_token:xxxxxxxxx(这块替换成你的token值)
