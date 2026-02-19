@@ -147,92 +147,61 @@ class ChatCompletionMessage(BaseModel):
     content: Optional[str] = None
     tool_calls: Optional[List[ToolCall]] = None
 
-# 读取模型配置（所有模型共用同一个x_token）
-def load_model_sessions():
-    sessions = {}
-    x_token = None
-    try:
-        # 获取脚本所在目录的绝对路径
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(script_dir, 'yuanbao_model_sessions.txt')
-        logger.info(f"正在读取配置文件: {config_path}")
+# 模型配置存储（包含对应的 Headers）
+MODEL_SESSIONS = {}
+# 存储每个模型的对话ID
+MODEL_CONVERSATION_IDS = {}
 
+# 读取模型配置
+def load_model_sessions():
+    """读取并合并配置文件中的 Headers"""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(script_dir, 'yuanbao_model_sessions.txt')
+    
+    if not os.path.exists(config_path):
+        logger.error(f"配置文件不存在: {config_path}")
+        return {}
+
+    # 极简默认Headers
+    headers = {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0",
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "origin": "https://tencent.yuanbao",
+        "referer": "https://tencent.yuanbao/",
+        "x-requested-with": "XMLHttpRequest"
+    }
+    
+    try:
+        logger.info(f"正在加载配置: {config_path}")
         with open(config_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    # 新格式：x_token:token值
                     parts = line.split(':', 1)
                     if len(parts) == 2:
-                        key, value = parts
-                        if key.strip().lower() == 'x_token':
-                            x_token = value.strip()
-                            logger.info(f"加载 x_token: {x_token[:20]}...")
-                            break
-
-        # 如果成功读取到 x_token，为所有支持的模型创建配置
-        if x_token:
-            for model_name in MODEL_TO_CHAT_ID.keys():
-                sessions[model_name] = {
-                    'x_token': x_token
-                }
-                logger.info(f"为模型 {model_name} 配置 x_token")
-            logger.info(f"成功为 {len(sessions)} 个模型配置 x_token")
-        else:
-            logger.error("配置文件中未找到 x_token")
+                        key, val = parts[0].strip(), parts[1].strip()
+                        headers[key] = val
+        
+        # 只要文件读取成功，就为所有模型初始化 Headers
+        logger.info(f"配置加载完成，共计 {len(headers)} 个 Header 字段")
+        return {model: headers.copy() for model in MODEL_TO_CHAT_ID.keys()}
+            
     except Exception as e:
-        logger.error(f"读取模型会话配置失败: {str(e)}")
-    return sessions
+        logger.error(f"配置文件解析失败: {str(e)}")
+        return {}
 
-# 全局变量存储会话ID映射
 MODEL_SESSIONS = load_model_sessions()
 
-# 存储每个模型的对话ID，每次请求后更新
-MODEL_CONVERSATION_IDS = {}
-
-def create_conversation(x_token: str, model: str) -> str:
+def create_conversation(model: str) -> str:
     """
     创建新的对话
     """
     url = "https://yuanbao.tencent.com/api/user/agent/conversation/v1/detail"
     
-    headers = {
-        "sec-ch-ua-platform": "Windows",
-        "x-device-id": "78755567e30633de2280724c300013617a17",
-        "sec-ch-ua": '"Not(A:Brand";v="8", "Chromium";v="144", "Microsoft Edge";v="144", "Microsoft Edge WebView2";v="144"',
-        "x-token": x_token,
-        "x-instance-id": "1",
-        "x-device-name": "Administrator",
-        "sec-ch-ua-mobile": "?0",
-        "x-language": "zh-CN",
-        "x-requested-with": "XMLHttpRequest",
-        "accept": "application/json, text/plain, */*",
-        "x-a153": "78755567e30633de2280724c300013617a17",
-        "content-type": "application/json",
-        "x-trid-channel": "",
-        "x-operationsystem": "win",
-        "x-channel": "7001",
-        "x-id": "c03ce86d8f624ae1af7c1cbeea4161d7",
-        "x-product": "bot",
-        "x-a10": "HP-2Q523AV",
-        "x-appversion": "2.55.0",
-        "x-source": "web",
-        "x-a19": "wifi",
-        "x-os_version": "Windows_11_Desktop",
-        "x-hy92": "8f95c0219a98bc38c16530540200000901a202",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0 app_version/2.55.0 os_version/10.0.22000 app_theme/system os_name/windows app_short_version/2.55.0 app_lang/zh-CN system_lang/zh-CN app_instance_id/2 product_id/TM_Product_App app_full_version/2.55.0.611 package_type/publish_release c_district/0 app/tencent_yuanbao",
-        "x-a3": "78755567e30633de2280724c300013617a17",
-        "x-hy93": "1931b0f29271003d9a98bc38c165305447cafa1cb9",
-        "x-a9": "HP",
-        "origin": "https://tencent.yuanbao",
-        "sec-fetch-site": "cross-site",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-dest": "empty",
-        "referer": "https://tencent.yuanbao/",
-        "accept-encoding": "gzip, deflate, br, zstd",
-        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-        "priority": "u=1, i"
-    }
+    headers = MODEL_SESSIONS.get(model)
+    if not headers:
+        raise ValueError(f"未找到模型 {model} 的配置")
     
     # 生成新的conversationId (UUID格式)
     conversation_id = str(uuid.uuid4())
@@ -259,15 +228,9 @@ def create_conversation(x_token: str, model: str) -> str:
         raise
 
 
-def get_or_create_conversation(x_token: str, model: str, force_create: bool = False) -> str:
+def get_or_create_conversation(model: str, force_create: bool = False) -> str:
     """
     获取或创建对话ID
-    如果该模型已经有对话ID，则复用；否则创建新的
-    
-    Args:
-        x_token: 认证token
-        model: 模型名称
-        force_create: 是否强制创建新对话（用于对话失效后重建）
     """
     # 检查是否已有对话ID且不需要强制创建
     if not force_create and model in MODEL_CONVERSATION_IDS:
@@ -282,7 +245,7 @@ def get_or_create_conversation(x_token: str, model: str, force_create: bool = Fa
         del MODEL_CONVERSATION_IDS[model]
     
     # 创建新的对话
-    return create_conversation(x_token, model)
+    return create_conversation(model)
 
 def parse_tool_call(response_text: str, has_tool_result_in_history: bool = False) -> Optional[dict]:
     """
@@ -398,7 +361,7 @@ def send_yuanbao_request_with_retry(prompt: str, stream: bool = False, model: st
     while retry_count <= max_retries:
         # 获取或创建对话ID
         try:
-            conversation_id = get_or_create_conversation(model_config['x_token'], model, force_create=force_create)
+            conversation_id = get_or_create_conversation(model, force_create=force_create)
             logger.info(f"使用对话ID: {conversation_id} (尝试 {retry_count + 1}/{max_retries + 1})")
         except Exception as e:
             logger.error(f"获取/创建对话失败: {str(e)}")
@@ -406,40 +369,11 @@ def send_yuanbao_request_with_retry(prompt: str, stream: bool = False, model: st
         
         url = f"https://yuanbao.tencent.com/api/chat/{conversation_id}"
         
-        headers = {
-            "sec-ch-ua-platform": "Windows",
-            "sec-ch-ua": '"Microsoft Edge WebView2";v="135", "Chromium";v="135", "Not-A.Brand";v="8", "Microsoft Edge";v="135"',
-            "x-token": model_config['x_token'],
-            "x-instance-id": "1",
-            "sec-ch-ua-mobile": "?0",
-            "x-language": "zh-CN",
-            "x-requested-with": "XMLHttpRequest",
-            "content-type": "text/plain;charset=UTF-8",
-            "x-operationsystem": "win",
-            "x-channel": "7001",
-            "chat_version": "v1",
-            "x-id": "c03ce86d8f624ae1af7c1cbeea4161d7",
-            "sidebarwidth": "204",
-            "x-a10": "HP-2Q523AV",
-            "x-product": "bot",
-            "x-appversion": "1.10.0",
-            "x-os_version": "Windows_11_Desktop",
-            "x-source": "web",
-            "x-hy92": "defb4cb89a98bc38c16530540200000c119419",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0 product_id/TM_Product_App app_theme/system app/tencent_yuanbao os_name/windows app_short_version/1.10.0 app_instance_id/2 c_district/0 system_lang/zh-CN os_version/10.0.22000 app_version/1.10.0 package_type/publish_release app_full_version/1.10.0.608 app_lang/zh-CN",
-            "x-a3": "78755567e30633de2280724c300013617a17",
-            "x-hy93": "1931b0f29271003d9a98bc38c165305447cafa1cb9",
-            "x-a9": "HP",
-            "accept": "*/*",
-            "origin": "https://tencent.yuanbao",
-            "sec-fetch-site": "cross-site",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-dest": "empty",
-            "referer": "https://tencent.yuanbao/",
-            "accept-encoding": "gzip, deflate, br, zstd",
-            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-            "priority": "u=1, i"
-        }
+        # 直接使用预合并的 Headers
+        headers = model_config.copy()
+        
+        # 特殊处理：发送请求时的 Content-Type
+        headers["content-type"] = "text/plain;charset=UTF-8"
         
         payload = {
             "agentId": "naQivTmsDa",

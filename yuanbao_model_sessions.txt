@@ -1,5 +1,18 @@
 # Yuanbao API 配置文件
-# 只需配置一个 x-token，所有模型共用此 token
-# 格式: x_token:你的token值（WEB版的元宝页面中，名称叫：hy_token）
+# x-token 为 cookie的 hy-token
+# 有不一样的可以修改
 
-x_token:xxxxxxxxx(这块替换成你的token值)
+x-token:
+x-device-id:
+x-hy92:
+x-hy93:
+x-id:
+x-instance-id:5
+x-language:zh-CN
+x-os_version:Windows(10)-Blink
+x-platform:win
+x-requested-with:XMLHttpRequest
+x-source:web
+x-webdriver:0
+x-webversion:2.57.0
+x-ybuitest:0

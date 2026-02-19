@@ -57,21 +57,38 @@ pip install -r requirements.txt
 
 ```
 # 格式：
-x_token:your_x_token
+# x-token 为 cookie的 hy-token
+# 有不一样的可以修改
+
+x-token:
+x-device-id:
+x-hy92:
+x-hy93:
+x-id:
+x-instance-id:5
+x-language:zh-CN
+x-os_version:Windows(10)-Blink
+x-platform:win
+x-requested-with:XMLHttpRequest
+x-source:web
+x-webdriver:0
+x-webversion:2.57.0
+x-ybuitest:0
+
 ```
 
-**获取 hy_token 的方法：**
+**获取 hy_token 等配置 的方法：**
 1. 登录腾讯元宝网站
 2. 打开浏览器开发者工具（F12）
 3. 切换到 Network 标签页
 4. 发送一条消息给 Deepseek 模型
 5. 找到 `https://yuanbao.tencent.com/api/user/agent/conversation/v1/detail` 请求
-6. 从该请求的 Cookie 中获取 `hy_token`
+6. 从该请求的 Cookie 中获取 `hy_token`，其他类似
 <img width="1920" height="810" alt="image" src="https://github.com/user-attachments/assets/b1bd11b7-6682-4bf5-9eb9-6f6fd7c4deb1" />
 
-在Cookie 中找到 `hy_token`
+在Cookie 中找到 `hy_token`，其他类似
 <img width="1896" height="459" alt="image" src="https://github.com/user-attachments/assets/8683065f-fefe-4647-8108-5f612e383ac0" />
-8. 复制hy_token值到配置文件中
+8. 复制hy_token以及其他值到配置文件中
 
 ### 2. 启动服务
 
